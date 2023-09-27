@@ -40,10 +40,22 @@
   [:section.section>div.container>div.content
    [:img {:src "/img/warning_clojure.png"}]])
 
+(defn result [{:keys [game-name game-image]}]
+  [:div
+   [:div (str "Game: " game-name)]
+   [:img {:src game-image}]])
+
+(defn results []
+  (let [search-results @(rf/subscribe [:search-results])]
+    (into [:div] (map #(result %) search-results))))
+
 (defn home-page []
   [:section.section>div.container>div.content
-   (when-let [docs @(rf/subscribe [:docs])]
-     [:div {:dangerouslySetInnerHTML {:__html (md->html docs)}}])])
+   [:div "Find a game"]
+   [:div
+    [:input {:type "text" :name "game-query" :on-blur #(rf/dispatch [:change-query  (-> % .-target .-value)])}]
+    [:button {:on-click #(rf/dispatch [:submit-query])} "SEARCH"]
+    [results]]])
 
 (defn page []
   (if-let [page @(rf/subscribe [:common/page])]

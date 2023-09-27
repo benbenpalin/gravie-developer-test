@@ -48,7 +48,31 @@
   (fn [_ _]
     {:dispatch [:fetch-docs]}))
 
+(rf/reg-event-db
+  :change-query
+  (fn [db [_ query]]
+    (assoc db :query query)))
+
+(rf/reg-event-fx
+  :submit-query
+  (fn [{:keys [db]} [_ _]]
+    {:db (assoc db :submit-status :submitted)
+     :dispatch [:change-search-results [{:game-name  "THPS"
+                                         :game-image "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSq_-0XfS2Wmz9Fj-h8PTpFSgpEwaInIqrL438PQyPDdQ&s"}
+                                        {:game-name  "THPS 2"
+                                         :game-image "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSq_-0XfS2Wmz9Fj-h8PTpFSgpEwaInIqrL438PQyPDdQ&s"}]]}))
+
+(rf/reg-event-db
+  :change-search-results
+  (fn [db [_ search-results]]
+    (assoc db :search-results search-results)))
+
 ;;subscriptions
+
+(rf/reg-sub
+  :search-results
+  (fn [db _]
+    (-> db :search-results)))
 
 (rf/reg-sub
   :common/route
