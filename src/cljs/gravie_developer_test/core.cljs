@@ -4,14 +4,10 @@
     [reagent.dom :as rdom]
     [reagent.core :as r]
     [re-frame.core :as rf]
-    [goog.events :as events]
-    [goog.history.EventType :as HistoryEventType]
-    [markdown.core :refer [md->html]]
     [gravie-developer-test.ajax :as ajax]
     [gravie-developer-test.events]
     [reitit.core :as reitit]
-    [reitit.frontend.easy :as rfe]
-    [clojure.string :as string])
+    [reitit.frontend.easy :as rfe])
   (:import goog.History))
 
 (defn nav-link [uri title page]
@@ -69,8 +65,7 @@
 (def router
   (reitit/router
     [["/" {:name        :home
-           :view        #'home-page
-           :controllers [{:start (fn [_] (rf/dispatch [:page/init-home]))}]}]
+           :view        #'home-page}]
      ["/about" {:name :about
                 :view #'about-page}]]))
 
