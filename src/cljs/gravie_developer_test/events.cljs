@@ -1,5 +1,6 @@
 (ns gravie-developer-test.events
   (:require
+    [ajax.core :as ajax]
     [re-frame.core :as rf]
     [reitit.frontend.easy :as rfe]
     [reitit.frontend.controllers :as rfc]))
@@ -37,16 +38,18 @@
 (rf/reg-event-fx
   :submit-query
   (fn [{:keys [db]} [_ _]]
-    {:db (assoc db :submit-status :submitted)
-     :dispatch [:change-search-results [{:game-name  "THPS"
-                                         :game-image "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSq_-0XfS2Wmz9Fj-h8PTpFSgpEwaInIqrL438PQyPDdQ&s"}
-                                        {:game-name  "THPS 2"
-                                         :game-image "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSq_-0XfS2Wmz9Fj-h8PTpFSgpEwaInIqrL438PQyPDdQ&s"}]]}))
+    {:db         (assoc db :submit-status :submitted)
+     :http-xhrio {:method          :get
+                  :uri             (str "/api/search-games?search-query=" (:query db))
+                  :timeout         5000
+                  :response-format (ajax/json-response-format {:keywords? true})
+                  :on-success      [:change-search-results]}}))
+                  ;:on-failure      [:change-search-results]}}))
 
 (rf/reg-event-db
   :change-search-results
   (fn [db [_ search-results]]
-    (assoc db :search-results search-results)))
+    (assoc db :search-results (:games search-results))))
 
 ;;subscriptions
 

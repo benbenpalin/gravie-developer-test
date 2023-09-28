@@ -36,10 +36,10 @@
   [:section.section>div.container>div.content
    [:img {:src "/img/warning_clojure.png"}]])
 
-(defn result [{:keys [game-name game-image]}]
+(defn result [{:keys [name image]}]
   [:div
-   [:div (str "Game: " game-name)]
-   [:img {:src game-image}]])
+   [:div (str "Game: " name)]
+   [:img {:src image}]])
 
 (defn results []
   (let [search-results @(rf/subscribe [:search-results])]
