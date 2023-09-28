@@ -24,4 +24,10 @@
 
   (testing "not-found route"
     (let [response ((app) (request :get "/invalid"))]
-      (is (= 404 (:status response))))))
+      (is (= 404 (:status response)))))
+
+  (testing "api/search-games"
+    (let [response ((app) (-> (request :get "/api/search-games")
+                              (query-string "fun")))]
+      (is (= 200 (:status response))))))
+
