@@ -38,25 +38,70 @@
 (rf/reg-event-fx
   :submit-query
   (fn [{:keys [db]} [_ _]]
-    {:db         (assoc db :submit-status :submitted)
+    {:db         (assoc db :search-status :submitted
+                           :search-results [])
      :http-xhrio {:method          :get
                   :uri             (str "/api/search-games?search-query=" (:query db))
                   :timeout         5000
                   :response-format (ajax/json-response-format {:keywords? true})
-                  :on-success      [:change-search-results]}}))
-                  ;:on-failure      [:change-search-results]}}))
+                  :on-success      [:change-search-results :success]
+                  :on-failure      [:search-failure]}}))
+
+(rf/reg-event-db
+  :search-failure
+  (fn [db [_ _]]
+    (assoc db :search-status :failure)))
 
 (rf/reg-event-db
   :change-search-results
-  (fn [db [_ search-results]]
-    (assoc db :search-results (:games search-results))))
+  (fn [db [_ search-status search-results]]
+    (assoc db :search-results (:games search-results)
+              :search-status search-status)))
+
+(rf/reg-event-db
+  :add-to-cart
+  (fn [db [_ name]]
+    (-> db
+      (update :cart conj name)
+      (assoc :check-out-status :items-in-cart))))
+
+(rf/reg-event-fx
+  :rent-games
+  (fn [{:keys [db]} [_ _]]
+    {:db (assoc db :check-out-status :complete)
+     :dispatch [:clear-cart]}))
+
+(rf/reg-event-db
+  :reset-check-out-status
+  (fn [db [_ _]]
+    (dissoc db :check-out-status)))
+
+(rf/reg-event-db
+  :clear-cart
+  (fn [db [_ _]]
+    (assoc db :cart [])))
 
 ;;subscriptions
+
+(rf/reg-sub
+  :check-out-status
+  (fn [db _]
+    (-> db :check-out-status)))
+
+(rf/reg-sub
+  :cart
+  (fn [db _]
+    (-> db :cart)))
 
 (rf/reg-sub
   :search-results
   (fn [db _]
     (-> db :search-results)))
+
+(rf/reg-sub
+  :search-status
+  (fn [db _]
+    (-> db :search-status)))
 
 (rf/reg-sub
   :common/route
