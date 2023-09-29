@@ -36,22 +36,31 @@
                    [nav-link "#/checkout"
                     (str "Checkout " (count @(rf/subscribe [:cart])) " items")
                     :checkout
-                    #(rf/dispatch [:change-search-results {} :not-submitted])]]]])))
+                    #(rf/dispatch [:reset-search-results])]]]])))
 
 ;; Search Page
 
 (defn result [{:keys [name image]}]
-  [:div {:style {:margin-bottom :20px}}
-   [:div name]
-   [:img {:src image}]
-   [:div {:on-click #(rf/dispatch [:add-to-cart name])
-          :style {:cursor :pointer
-                  :background-color :blue
-                  :width :100px
-                  :color :white
-                  :text-align :center
-                  :border-radius :5px}}
-    "Add to Cart"]])
+  (let [cart @(rf/subscribe [:cart])]
+    [:div {:style {:margin-bottom :20px}}
+     [:div name]
+     [:img {:src image}]
+     [:div (if (cart name)
+             {:style {:cursor :not-allowed
+                      :background-color :blue
+                      :opacity 0.5
+                      :width :100px
+                      :color :white
+                      :text-align :center
+                      :border-radius :5px}}
+             {:on-click #(rf/dispatch [:add-to-cart name])
+              :style {:cursor :pointer
+                      :background-color :blue
+                      :width :100px
+                      :color :white
+                      :text-align :center
+                      :border-radius :5px}})
+      "Add to Cart"]]))
 
 (defn results []
   (let [search-results @(rf/subscribe [:search-results])
@@ -74,19 +83,28 @@
 
 ;;  Checkout Page
 
-(defn cart-item [item item-frequencies]
-  [:div
-   [:span {:style {:margin-right :10px}} item]
-   [:span (str (get item-frequencies item) "x")]])
+(defn cart-item [item]
+  [:div item])
 
 (defn cart-items []
-  (let [cart  @(rf/subscribe [:cart])
-        item-frequencies (frequencies cart)]
-    (into [:div] (map #(cart-item % item-frequencies) (set cart)))))
+  (let [cart  @(rf/subscribe [:cart])]
+    (into [:div] (map #(cart-item %) cart))))
+
+(defn clear-cart-button []
+  [:div {:on-click #(do (rf/dispatch [:clear-cart])
+                        (rf/dispatch [:reset-check-out-status]))
+         :style {:cursor :pointer
+                 :background-color :blue
+                 :width :100px
+                 :color :white
+                 :text-align :center
+                 :border-radius :5px}}
+   "Clear Cart"])
 
 (defn cart []
   [:div
-   [cart-items]
+   [clear-cart-button]
+   [:div [cart-items]]
    [:div {:on-click #(rf/dispatch [:rent-games])
           :style {:cursor :pointer
                   :background-color :green
@@ -144,4 +162,5 @@
 (defn init! []
   (start-router!)
   (ajax/load-interceptors!)
+  (rf/dispatch [:initialize-db])
   (mount-components))

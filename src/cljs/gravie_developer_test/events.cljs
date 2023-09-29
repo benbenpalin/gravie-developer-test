@@ -8,6 +8,17 @@
 ;;dispatchers
 
 (rf/reg-event-db
+  :initialize-db
+  (fn [db [_ _]]
+    (println (assoc  db :search-results []
+                        :search-status :not-submitted))
+    (assoc  db :search-results []
+               :search-status :not-submitted
+               :cart #{}
+               :check-out-status :cart-empty
+               :query "")))
+
+(rf/reg-event-db
   :common/navigate
   (fn [db [_ match]]
     (let [old-match (:common/route db)
@@ -59,6 +70,13 @@
               :search-status search-status)))
 
 (rf/reg-event-db
+  :reset-search-results
+  (fn [db [_ search-status search-results]]
+    (assoc db :search-results {}
+              :search-status :not-submitted
+              :query "")))
+
+(rf/reg-event-db
   :add-to-cart
   (fn [db [_ name]]
     (-> db
@@ -74,12 +92,12 @@
 (rf/reg-event-db
   :reset-check-out-status
   (fn [db [_ _]]
-    (dissoc db :check-out-status)))
+    (assoc db :check-out-status :cart-empty)))
 
 (rf/reg-event-db
   :clear-cart
   (fn [db [_ _]]
-    (assoc db :cart [])))
+    (assoc db :cart #{})))
 
 ;;subscriptions
 
